@@ -20,16 +20,23 @@ jobs:
     - name: Install Buildozer Dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake aidl libstdc++6
 
     - name: Install Buildozer
       run: |
         pip install --upgrade pip
         pip install buildozer cython
 
+    - name: Pre-Accept Android SDK Licenses
+      run: |
+        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+        echo "244d2d04b4ad20f6c96a2860a10db8523628d4d9" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo "84831b9409646a918e30573bab4c9c91346d8abd" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo "601085b94cd77f0b54ff2d071f33d782eb5d4d32" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+
     - name: Build APK with Buildozer
       run: |
-        buildozer android debug
+        yes y | buildozer android debug
       env:
         ACCEPT_SDK_LICENSE: "y"
 

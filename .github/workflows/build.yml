@@ -17,30 +17,41 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install Buildozer Dependencies
+    - name: Install System Compilers and Tools
       run: |
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake aidl libstdc++6
 
-    - name: Install Buildozer
+    - name: Install Buildozer and Cython
       run: |
         pip install --upgrade pip
-        pip install buildozer cython
+        pip install "buildozer==2.1.3" "cython<3.0.0"
 
-    - name: Pre-Accept Android SDK Licenses
+    - name: Fix Android SDK Directory Layout Manually
+      run: |
+        # Force-build correct internal directories so sdkmanager can locate itself safely
+        mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+        wget https://google.com -O tools.zip
+        unzip -q tools.zip
+        mv cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+        rm -rf cmdline-tools tools.zip
+
+    - name: Pre-Accept Android Legal Licenses
       run: |
         mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
         echo "244d2d04b4ad20f6c96a2860a10db8523628d4d9" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         echo "84831b9409646a918e30573bab4c9c91346d8abd" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         echo "601085b94cd77f0b54ff2d071f33d782eb5d4d32" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
-    - name: Build APK with Buildozer
+    - name: Clean & Build APK with Buildozer
       run: |
+        # Clear out old failing artifacts and execute with an automatic "yes" to root
+        buildozer android clean || true
         yes y | buildozer android debug
       env:
         ACCEPT_SDK_LICENSE: "y"
 
-    - name: Upload Finished APK
+    - name: Upload Finished APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Android-APK
